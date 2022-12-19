@@ -174,13 +174,13 @@ public class Program
             }
         }
 
-        WriteFxrIds(unusedFxrIds, $"UnusedFxrIds_{Path.GetFileNameWithoutExtension(args[0])}.txt", game);
+        WriteFxrIds(unusedFxrIds, $"UnusedOrHardcodedFxrIds_{Path.GetFileNameWithoutExtension(args[0])}.txt", game);
         WriteFxrIds(usedFxrIds, $"UsedFxrIds_{Path.GetFileNameWithoutExtension(args[0])}.txt", game);
         WriteFxrIds(extraFxrIds, $"ExtraFxrIds_{Path.GetFileNameWithoutExtension(args[0])}.txt", game);
 
         Console.WriteLine($"\nFinal results for {game.Name} using \"{Path.GetFileName(args[0])}\":");
         Console.WriteLine($"Total FXR count from CSV: {csvFxrIdsCount}");
-        Console.WriteLine($"Unused FXR count: {unusedFxrIds.Count}");
+        Console.WriteLine($"Unused or Hardcoded FXR count: {unusedFxrIds.Count}");
         Console.WriteLine($"Used FXR count: {usedFxrIds.Count} (Includes extra FXR count)");
         Console.WriteLine($"Extra FXR count: {extraFxrIds.Count} (FXR that were used, but not in the CSV)");
         Console.WriteLine($"\nPress any key to quit...");
