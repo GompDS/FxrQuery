@@ -1,6 +1,8 @@
-﻿using System.Xml.Linq;
+﻿using System.ComponentModel;
+using System.Xml.Linq;
 using SoulsAssetPipeline.Animation;
 using SoulsFormats;
+using FxrQuery.Util;
 
 namespace FxrQuery;
 
@@ -42,7 +44,7 @@ public class Program
 
         int csvFxrIdsCount = unusedFxrIds.Count;
         Console.WriteLine($"Found {csvFxrIdsCount} potential FXR IDs.");
-       
+        
         string chrDirectory = $"{gameDirectory}\\chr";
         if (Directory.Exists(chrDirectory))
         {
@@ -124,6 +126,53 @@ public class Program
         { 
             UpdateFxrSets((int) cell.Value, unusedFxrIds, usedFxrIds, extraFxrIds);
         }
+        
+        Console.WriteLine("Searching events for FXR IDs...");
+        
+        string eventDirectory = $"{gameDirectory}\\event";
+        if (Directory.Exists(eventDirectory))
+        {
+            EMEVD commonFuncEmevd = EMEVD.Read($"{eventDirectory}\\common_func.emevd.dcx");
+            foreach (EMEVD mapEmevd in Directory.GetFiles(eventDirectory, "m*_*_*_*.emevd.dcx")
+                         .Where(x => EMEVD.Is(x)).Select(x => EMEVD.Read(x)).Where(x => x.Format == game.Format))
+            {
+                foreach (int fxrId in EMEVDUtil.GetNestedSfxInstructionFxrIds(mapEmevd, mapEmevd, 2000, 0, 4, 8))
+                {
+                    UpdateFxrSets(fxrId, unusedFxrIds, usedFxrIds, extraFxrIds);
+                }
+
+                foreach (int fxrId in EMEVDUtil.GetNestedSfxInstructionFxrIds(mapEmevd, commonFuncEmevd, 2000, 6, 0, 4))
+                {
+                    UpdateFxrSets(fxrId, unusedFxrIds, usedFxrIds, extraFxrIds);
+                }
+
+                foreach (int fxrId in EMEVDUtil.GetLooseSfxInstructionFxrIds(mapEmevd, 0))
+                {
+                    UpdateFxrSets(fxrId, unusedFxrIds, usedFxrIds, extraFxrIds);
+                }
+                
+                foreach (int fxrId in EMEVDUtil.GetLooseSfxInstructionFxrIds(mapEmevd, 50))
+                {
+                    UpdateFxrSets(fxrId, unusedFxrIds, usedFxrIds, extraFxrIds);
+                }
+            }
+            
+            EMEVD commonEmevd = EMEVD.Read($"{eventDirectory}\\common.emevd.dcx");
+            foreach (int fxrId in EMEVDUtil.GetNestedSfxInstructionFxrIds(commonEmevd, commonEmevd, 2000, 0, 4, 8))
+            {
+                UpdateFxrSets(fxrId, unusedFxrIds, usedFxrIds, extraFxrIds);
+            }
+            
+            foreach (int fxrId in EMEVDUtil.GetLooseSfxInstructionFxrIds(commonEmevd, 0))
+            {
+                UpdateFxrSets(fxrId, unusedFxrIds, usedFxrIds, extraFxrIds);
+            }
+                
+            foreach (int fxrId in EMEVDUtil.GetLooseSfxInstructionFxrIds(commonEmevd, 50))
+            {
+                UpdateFxrSets(fxrId, unusedFxrIds, usedFxrIds, extraFxrIds);
+            }
+        }
 
         WriteFxrIds(unusedFxrIds, $"UnusedFxrIds_{Path.GetFileNameWithoutExtension(args[0])}.txt", game);
         WriteFxrIds(usedFxrIds, $"UsedFxrIds_{Path.GetFileNameWithoutExtension(args[0])}.txt", game);
@@ -165,7 +214,7 @@ public class Program
             {
                 if (ev.Type == 120)
                 {
-                    for (int i = 0; i < 12; i += 4)
+                    for (int i = 0; i < 48; i += 4)
                     {
                         int ffxId = ev.ReadParameterInt32(tae.BigEndian, i);
                         UpdateFxrSets(ffxId, unusedFxrIds, usedFxrIds, extraFxrIds);
