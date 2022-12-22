@@ -3,6 +3,7 @@ using System.Xml.Linq;
 using SoulsAssetPipeline.Animation;
 using SoulsFormats;
 using FxrQuery.Util;
+using HKX2;
 
 namespace FxrQuery;
 
@@ -80,13 +81,13 @@ public class Program
             Console.WriteLine("Searching maps for FXR IDs...");
             foreach (string msbPath in Directory.EnumerateFiles(mapDirectory, "*.msb.dcx"))
             {
-                if (MSB3.Is(msbPath))
+                if (game.Type == GameInfo.GameType.DarkSouls3)
                 {
-                    SearchMsb(MSB3.Read(msbPath), unusedFxrIds, usedFxrIds, extraFxrIds);
+                    SearchMsb(MSB3.Read(msbPath), unusedFxrIds, usedFxrIds, extraFxrIds, game);
                 }
-                else if (MSBE.Is(msbPath))
+                else if (game.Type == GameInfo.GameType.EldenRing)
                 {
-                    SearchMsb(MSBE.Read(msbPath), unusedFxrIds, usedFxrIds, extraFxrIds);
+                    SearchMsb(MSBE.Read(msbPath), unusedFxrIds, usedFxrIds, extraFxrIds, game);
                 }
             }
         }
@@ -234,9 +235,9 @@ public class Program
     }
 
     private static void SearchMsb(IMsb msb, HashSet<int> unusedFxrIds, HashSet<int> usedFxrIds,
-        HashSet<int> extraFxrIds)
+        HashSet<int> extraFxrIds, GameInfo game)
     {
-        if (MSB3.Is(msb.Write()))
+        if (game.Type == GameInfo.GameType.DarkSouls3)
         {
             msb = MSB3.Read(msb.Write());
             foreach (MSB3.Region.SFX sfx in ((MSB3) msb).Regions.SFX)
@@ -249,7 +250,7 @@ public class Program
                 UpdateFxrSets(windSfx.EffectID, unusedFxrIds, usedFxrIds, extraFxrIds);
             }
         }
-        else if (MSBE.Is(msb.Write()))
+        else if (game.Type == GameInfo.GameType.EldenRing)
         {
             msb = MSBE.Read(msb.Write());
             foreach (MSBE.Region.SFX sfx in ((MSBE) msb).Regions.SFX)
