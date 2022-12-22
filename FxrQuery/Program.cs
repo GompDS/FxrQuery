@@ -80,9 +80,13 @@ public class Program
             Console.WriteLine("Searching maps for FXR IDs...");
             foreach (string msbPath in Directory.EnumerateFiles(mapDirectory, "*.msb.dcx"))
             {
-                if (MSB3.IsRead(msbPath, out MSB3 msb))
+                if (MSB3.Is(msbPath))
                 {
-                    SearchMsb(msb, unusedFxrIds, usedFxrIds, extraFxrIds);
+                    SearchMsb(MSB3.Read(msbPath), unusedFxrIds, usedFxrIds, extraFxrIds);
+                }
+                else if (MSBE.Is(msbPath))
+                {
+                    SearchMsb(MSBE.Read(msbPath), unusedFxrIds, usedFxrIds, extraFxrIds);
                 }
             }
         }
